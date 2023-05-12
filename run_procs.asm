@@ -73,38 +73,31 @@ for_loop:
 
     mov ecx, 5 ; il luam pe post de contor
 for_avg:
-    ; 00000000000000000000000000000
-    mov ebx, dword[time_result + ecx * 4 - 4]
+    ;mov ebx, dword[time_result + ecx * 4 - 4]
     ;PRINTF32 `time:%d   \x0`, ebx
-    mov ebx, dword[prio_result + ecx * 4 - 4]
+    ;mov ebx, dword[prio_result + ecx * 4 - 4]
     ;PRINTF32 `prio:%d  \x0`, ebx
 
-    mov ebx, dword[prio_result + ecx * 4 - 4]
-
-    xor eax, eax
-    xor edx, edx
-    mov word[edi + ecx * 2 - 2 + avg.quo], ax ; initializam cu 0
-    mov word[edi + ecx * 2 - 2 + avg.remain], dx ; initializam cu 0
+    mov ebx, dword[prio_result + ecx * 4 - 4] ; pastram prioul
+    xor eax, eax ; initializam
+    xor edx, edx ; initializam
+    ;mov word[edi + ecx * 2 - 2 + avg.quo], ax ; initializam cu 0
+    ;mov word[edi + ecx * 2 - 2 + avg.remain], dx ; initializam cu 0
 
     cmp ebx, 0 ; comparam sa vedem daca e impartire la 0
-    jz continue
+    jz continue ; daca impartim la 0
     ;PRINTF32 `!zero%d   \n\x0`, ebx
     mov eax, dword[time_result + ecx * 4 - 4] ; pastram timpul
-    div ebx ; diferenta dintre div si idiv
+    div ebx ; facem impartirea
 
     ; mov word[edi + ecx * 2 - 2 + avg.quo], ax
     ; mov word[edi + ecx * 2 - 2 + avg.remain], dx
-    mov word[edi + ecx * 4 - 4 + avg.quo], ax
-    mov word[edi + ecx * 4 - 4 + avg.remain], dx
-    ; xor eax, eax
-    ; xor edx, edx
-    ; mov ax, word[edi + ecx * 2 - 2 + avg.quo]
-    ; mov dx, word[edi + ecx * 2 - 2 + avg.remain]
+    mov word[edi + ecx * 4 - 4 + avg.quo], ax ; mutam in avg catul
+    mov word[edi + ecx * 4 - 4 + avg.remain], dx ; mutam in avg restul
 continue:
-    PRINTF32 `catul:%u\n\x0`, eax
-    ;PRINTF32 `restul:%u\n\x0`, edx
+    PRINTF32 `catul:%u  \x0`, eax
+    PRINTF32 `restul:%u\n\x0`, edx
     loop for_avg
-    jmp end ;useless
 
     ;; Your code ends here
 
