@@ -92,6 +92,7 @@ for_avg:
 
     ; mov word[edi + ecx * 2 - 2 + avg.quo], ax
     ; mov word[edi + ecx * 2 - 2 + avg.remain], dx
+; din 4 in 4 ca vectorul e de inturi
     mov word[edi + ecx * 4 - 4 + avg.quo], ax ; mutam in avg catul
     mov word[edi + ecx * 4 - 4 + avg.remain], dx ; mutam in avg restul
 continue:
