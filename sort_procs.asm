@@ -1,114 +1,137 @@
 %include "../include/io.mac"
 
-    ;;
-    ;;   TODO: Declare 'avg' struct to match its C counterpart
-    ;;
-struc avg
-    .quo: resw 1
-    .remain: resw 1
-endstruc
-
 struc proc
     .pid: resw 1
     .prio: resb 1
     .time: resw 1
 endstruc
 
-    ;; Hint: you can use these global arrays
-section .data
-    prio_result dd 0, 0, 0, 0, 0
-    time_result dd 0, 0, 0, 0, 0
-
 section .text
-    global run_procs
+    global sort_procs
     extern printf
 
-run_procs:
+sort_procs:
     ;; DO NOT MODIFY
-
-    push ebp
-    mov ebp, esp
+    enter 0,0
     pusha
 
-    xor ecx, ecx
-
-clean_results:
-    mov dword [time_result + 4 * ecx], dword 0
-    mov dword [prio_result + 4 * ecx],  0
-
-    inc ecx
-    cmp ecx, 5
-    jne clean_results
-
-    mov ecx, [ebp + 8]      ; processes
-    mov ebx, [ebp + 12]     ; length
-    mov eax, [ebp + 16]     ; proc_avg
+    mov edx, [ebp + 8]      ; processes
+    mov eax, [ebp + 12]     ; length
     ;; DO NOT MODIFY
 
     ;; Your code starts here
-    mov edx, ecx ; acum avem procesele in edx
-    mov ecx, ebx ; contorul
-    PRINTF32 `nr_procese:%d\n\x0\n`, ecx
-for_loop:
-    ;PRINTF32 `indice:%d\n\x0\n`, ecx
+    ;;;;;;mai ai esi si edi
+    xor ecx, ecx
+    mov ecx, eax ;luam nr de procese
+    ;PRINTF32 `nr_procese:%d\n\x0\n`, ecx
+
+
+
+for_first:
+    ;PRINTF32 `primul:%d\n\x0\n`, ecx ; afisam nr procesului de la sfarsit
+
     xor esi, esi ;il pastram pentru primul proces incepand cu finalul
     mov esi, ecx ; adresa de o inmultim cu 5
     imul esi, 5 ; adresa inmultita cu 5
     sub esi, 5 ; scadem o adresa
-    add esi, edx ; adaugam vectorul de structuri
-    xor ebx, ebx ; initializam
+    add esi, edx
+    ;PRINTF32 `unu:%u\n\x0\n`, ebx
 
-    xor ebx, ebx
-    mov bl, byte[esi + proc.prio] ; luam prio
-    inc dword[prio_result + ebx * 4 - 4] ; incrementam in prio_result
+    push ecx ; retinem valoarea curenta a lui ecx ca sa iteram tot cu ecx in loopul 2
+    ; daca nu e 0 facem dec ecx
+    ;dec ecx ; ca sa luam de la urmatorul proces
 
-    xor edi, edi
-    mov di, word[esi + proc.time] ; luam time
-    ;PRINTF32 `time:%d\n\x0\n`, edi ; il afisam
-    add dword[time_result + ebx * 4 - 4], edi ; il adaugam la pozitia corespunzatoare din time_result
-    ;PRINTF32 `prio:%d\n\x0\n`, ebx
-    loop for_loop
+    for_second:
+        xor ebx, ebx ; esi e intermediar iar ebx retine valoarea
+        mov bl, byte[esi + proc.prio] ; punem in bl prioritatea
 
-    mov edi, eax ;retinem vectorul de avg
+        ; cream adresa de la inceputul fiecarui element din vectorul de structuri
+        mov edi, ecx
+        imul edi, 5
+        sub edi, 5
+        add edi, edx
+        xor eax, eax
+        mov al, byte[edi + proc.prio] ;mov al, byte[edx + edi + proc.pid]
+        cmp al, bl ; daca prio-ul e mai mare decat al unuia urmator
+        jg swap1 ; verificam daca trebuie interschimbare
+        jne continue ; daca au aceeasi prio ne ducem la continue
 
-    mov ecx, 5 ; il luam pe post de contor
-for_avg:
-    ; 00000000000000000000000000000
-    mov ebx, dword[time_result + ecx * 4 - 4]
-    ;PRINTF32 `time:%d   \x0`, ebx
-    mov ebx, dword[prio_result + ecx * 4 - 4]
-    ;PRINTF32 `prio:%d  \x0`, ebx
+        ; ajunge aici doar daca au acelasi prio
+        xor eax, eax
+        mov ax, word[edi + proc.time]
+        xor ebx, ebx
+        mov bx, word[esi + proc.time]
+        cmp ax, bx
+        jg swap2
+        jne continue
 
-    mov ebx, dword[prio_result + ecx * 4 - 4]
+        ; ajunge aici doar daca au acelasi prio si acelasi time
+        xor eax, eax
+        mov ax, word[edi + proc.pid]
+        xor ebx, ebx
+        mov bx, word[esi + proc.pid]
+        cmp ax, bx
+        jg swap3
+        jne continue
+
+
+    continue:
+        ;PRINTF32 `doi:%u\n\x0\n`, eax
+        loop for_second ; ne intoarcem la inceputul celui de al doilea loop si decrementam
+
+    pop ecx
+    loop for_first ;ne intoarcem la inceputul primului loop si decrementam ecx
+    jmp pentru_afisare ; sa nu faca iar swap
+
+swap1:
+    ; interschimbam in vector toate componentele
+    mov byte[edi + proc.prio], bl
+    mov byte[esi + proc.prio], al
+
+swap2:
+    ; la prio egale interschimbam time si pid
+    mov ax, word[edi + proc.time]
+    mov bx, word[esi + proc.time]
+    mov word[edi + proc.time], bx
+    mov word[esi + proc.time], ax
+
+swap3:
+    ; la prio si time egale interschimbam pid
+    mov ax, word[edi + proc.pid]
+    mov bx, word[esi + proc.pid]
+    mov word[edi + proc.pid], bx
+    mov word[esi + proc.pid], ax
+    ; ne intorcem in loop2
+    jmp continue
+
+
+; doar pentru afisare
+pentru_afisare
+    mov ecx, 13
+
+afisare:
+    ;PRINTF32 `primul:%d\n\x0\n`, ecx ; afisam nr procesului de la sfarsit
+
+    xor esi, esi ;il pastram pentru primul proces incepand cu finalul
+    mov esi, ecx ; adresa de o inmultim cu 5
+    imul esi, 5 ; adresa inmultita cu 5
+    sub esi, 5 ; scadem o adresa
 
     xor eax, eax
-    xor edx, edx
-    mov word[edi + ecx * 2 - 2 + avg.quo], ax ; initializam cu 0
-    mov word[edi + ecx * 2 - 2 + avg.remain], dx ; initializam cu 0
+    ; esi e intermediar iar eax retine valoarea
+    mov ax, word[edx + esi + proc.time] ; punem in al prioritatea
+    ;PRINTF32 `pid:%u\n\x0\n`, eax
 
-    cmp ebx, 0 ; comparam sa vedem daca e impartire la 0
-    jz continue
-    ;PRINTF32 `!zero%d   \n\x0`, ebx
-    mov eax, dword[time_result + ecx * 4 - 4] ; pastram timpul
-    div ebx ; diferenta dintre div si idiv
+    loop afisare ;ne intoarcem la inceputul primului loop si decrementam ecx
 
-    ; mov word[edi + ecx * 2 - 2 + avg.quo], ax
-    ; mov word[edi + ecx * 2 - 2 + avg.remain], dx
-    mov word[edi + ecx * 4 - 4 + avg.quo], ax
-    mov word[edi + ecx * 4 - 4 + avg.remain], dx
-    ; xor eax, eax
-    ; xor edx, edx
-    ; mov ax, word[edi + ecx * 2 - 2 + avg.quo]
-    ; mov dx, word[edi + ecx * 2 - 2 + avg.remain]
-continue:
-    PRINTF32 `catul:%u\n\x0`, eax
-    ;PRINTF32 `restul:%u\n\x0`, edx
-    loop for_avg
-    jmp end ;useless
-
-    ;; Your code ends here
 
 end:
+
+;PRINTF32 `prio:%u\n\x0\n`, ebx
+    ;mov bx, word[edx + eax + proc.time] ; punem in bx timeul
+    ;PRINTF32 `time:%u\n\x0\n`, ebx
+    ;; Your code ends here
+
     ;; DO NOT MODIFY
     popa
     leave
