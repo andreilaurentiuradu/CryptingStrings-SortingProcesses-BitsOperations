@@ -46,63 +46,67 @@ clean_results:
     ;; DO NOT MODIFY
 
     ;; Your code starts here
-    mov edx, ecx ; acum avem procesele in edx
+    ; retinem procesele in registrul edx
+    mov edx, ecx
+    ; retinem nr de procese in ecx
     mov ecx, ebx ; contorul
-    PRINTF32 `nr_procese:%d\n\x0\n`, ecx
-for_loop:
-    ;PRINTF32 `indice:%d\n\x0\n`, ecx
-    xor esi, esi ;il pastram pentru primul proces incepand cu finalul
-    mov esi, ecx ; adresa de o inmultim cu 5
-    imul esi, 5 ; adresa inmultita cu 5
-    sub esi, 5 ; scadem o adresa
-    add esi, edx ; adaugam vectorul de structuri
-    xor ebx, ebx ; initializam
 
+for_loop:
+
+    ; retinem in esi adresa ultimului proces din vector
+    xor esi, esi
+    mov esi, ecx
+    imul esi, proc_size
+    sub esi, proc_size
+    add esi, edx
+
+    ; retinem prioritatea sa in bl
     xor ebx, ebx
     mov bl, byte[esi + proc.prio] ; luam prio
-    inc dword[prio_result + ebx * 4 - 4] ; incrementam in prio_result
 
+    ; contorizam in vectorul prio_result aparitia
+    ; unui nou element cu o anumita prioritate
+    inc dword[prio_result + ebx * 4 - 4]
+
+    ; analog pentru campul time
     xor edi, edi
-    mov di, word[esi + proc.time] ; luam time
-    ;PRINTF32 `time:%d\n\x0\n`, edi ; il afisam
-    add dword[time_result + ebx * 4 - 4], edi ; il adaugam la pozitia corespunzatoare din time_result
-    ;PRINTF32 `prio:%d\n\x0\n`, ebx
+    mov di, word[esi + proc.time]
+
+    ; adunam time-ul in pozitia corespunzatoare din vectorul time_result
+    add dword[time_result + ebx * 4 - 4], edi
+
+    ; ne intoarcem la inceputul loopului
     loop for_loop
 
-    mov edi, eax ;retinem vectorul de avg
-
-    mov ecx, 5 ; il luam pe post de contor
+    ; retinem vectorul de avg
+    mov edi, eax
+    ; numarul de elemente din avg
+    mov ecx, 5
 for_avg:
-    ;mov ebx, dword[time_result + ecx * 4 - 4]
-    ;PRINTF32 `time:%d   \x0`, ebx
-    ;mov ebx, dword[prio_result + ecx * 4 - 4]
-    ;PRINTF32 `prio:%d  \x0`, ebx
 
-    mov ebx, dword[prio_result + ecx * 4 - 4] ; pastram prioul
-    xor eax, eax ; initializam
-    xor edx, edx ; initializam
-    ;mov word[edi + ecx * 2 - 2 + avg.quo], ax ; initializam cu 0
-    ;mov word[edi + ecx * 2 - 2 + avg.remain], dx ; initializam cu 0
+    ; pastram nr de procese cu o anumita prioritate
+    mov ebx, dword[prio_result + ecx * 4 - 4]
+    ; initializam registrii folositi de div
+    xor eax, eax
+    xor edx, edx
 
-    cmp ebx, 0 ; comparam sa vedem daca e impartire la 0
-    jz continue ; daca impartim la 0
-    ;PRINTF32 `!zero%d   \n\x0`, ebx
-    mov eax, dword[time_result + ecx * 4 - 4] ; pastram timpul
-    div ebx ; facem impartirea
+    ; daca nu exista un proces cu acea prioritate
+    cmp ebx, 0
+    jz continue
 
-    ; mov word[edi + ecx * 2 - 2 + avg.quo], ax
-    ; mov word[edi + ecx * 2 - 2 + avg.remain], dx
-; din 4 in 4 ca vectorul e de inturi
-    mov word[edi + ecx * 4 - 4 + avg.quo], ax ; mutam in avg catul
-    mov word[edi + ecx * 4 - 4 + avg.remain], dx ; mutam in avg restul
+    ; pastram timpul retinut de time_result pentru fiecare prioritate
+    mov eax, dword[time_result + ecx * 4 - 4]
+    ; facem media
+    div ebx
+    ; mutam in avg catul si restul
+    mov word[edi + ecx * 4 - 4 + avg.quo], ax
+    mov word[edi + ecx * 4 - 4 + avg.remain], dx
 continue:
-    PRINTF32 `catul:%u  \x0`, eax
-    PRINTF32 `restul:%u\n\x0`, edx
+    ; trecem la urmatoarea prioritate
     loop for_avg
 
     ;; Your code ends here
 
-end:
     ;; DO NOT MODIFY
     popa
     leave
