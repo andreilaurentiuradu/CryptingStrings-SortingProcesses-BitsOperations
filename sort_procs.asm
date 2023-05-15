@@ -20,69 +20,78 @@ sort_procs:
     ;; DO NOT MODIFY
 
     ;; Your code starts here
-    ;;;;;;mai ai esi si edi
-    xor ecx, ecx
-    mov ecx, eax ;luam nr de procese
-    ;PRINTF32 `nr_procese:%d\n\x0\n`, ecx
 
-
+    ; pastram in ecx numarul de procese
+    mov ecx, eax
 
 for_first:
-    ;PRINTF32 `primul:%d\n\x0\n`, ecx ; afisam nr procesului de la sfarsit
 
-    xor esi, esi ;il pastram pentru primul proces incepand cu finalul
-    mov esi, ecx ; adresa de o inmultim cu 5
-    imul esi, 5 ; adresa inmultita cu 5
-    sub esi, 5 ; scadem o adresa
+    ; punem in esi adresa ultimului proces
+    ; ne bazam pe formula esi = adresa_primului_proces +
+    ; indicele_procesului * dimesiunea_unui proces
+    mov esi, ecx
+    imul esi, proc_size
+    sub esi, proc_size
     add esi, edx
-    ;PRINTF32 `unu:%u\n\x0\n`, ebx
 
-    push ecx ; retinem valoarea curenta a lui ecx ca sa iteram tot cu ecx in loopul 2
-    ; daca nu e 0 facem dec ecx
-    ;dec ecx ; ca sa luam de la urmatorul proces
+    ; retinem valoarea curenta a lui ecx ca sa iteram tot cu ecx in loopul 2
+    push ecx
 
-    for_second:
-        xor ebx, ebx ; esi e intermediar iar ebx retine valoarea
-        mov bl, byte[esi + proc.prio] ; punem in bl prioritatea
+for_second:
+    ; initializam ebx
+    xor ebx, ebx
 
-        ; cream adresa de la inceputul fiecarui element din vectorul de structuri
-        mov edi, ecx
-        imul edi, 5
-        sub edi, 5
-        add edi, edx
-        xor eax, eax
-        mov al, byte[edi + proc.prio] ;mov al, byte[edx + edi + proc.pid]
-        cmp al, bl ; daca prio-ul e mai mare decat al unuia urmator
-        jg swap1 ; verificam daca trebuie interschimbare
-        jne continue ; daca au aceeasi prio ne ducem la continue
+    ; punem in bl prioritatea elementului mai aproape de sfarsit
+    mov bl, byte[esi + proc.prio]
 
-        ; ajunge aici doar daca au acelasi prio
-        xor eax, eax
-        mov ax, word[edi + proc.time]
-        xor ebx, ebx
-        mov bx, word[esi + proc.time]
-        cmp ax, bx
-        jg swap2
-        jne continue
+    ; cream adresa de la inceputul fiecarui element din vectorul de structuri
+    mov edi, ecx
+    imul edi, proc_size
+    sub edi, proc_size
+    add edi, edx
 
-        ; ajunge aici doar daca au acelasi prio si acelasi time
-        xor eax, eax
-        mov ax, word[edi + proc.pid]
-        xor ebx, ebx
-        mov bx, word[esi + proc.pid]
-        cmp ax, bx
-        jg swap3
-        jne continue
+    ; initializam eax
+    xor eax, eax
+    ; punem in al prioritatea elementului mai aproape de inceput
+    mov al, byte[edi + proc.prio]
 
+    ; comparam prioritatea
+    cmp al, bl
+    jg swap1
+    jne continue
 
-    continue:
-        ;PRINTF32 `doi:%u\n\x0\n`, eax
-        loop for_second ; ne intoarcem la inceputul celui de al doilea loop si decrementam
+    ; ajunge aici doar daca au acelasi prio
+    xor eax, eax
+    mov ax, word[edi + proc.time]
+    xor ebx, ebx
+    mov bx, word[esi + proc.time]
+    cmp ax, bx
+    jg swap2
+    jne continue
 
+    ; ajunge aici doar daca au acelasi prio si acelasi time
+    xor eax, eax
+    mov ax, word[edi + proc.pid]
+    xor ebx, ebx
+    mov bx, word[esi + proc.pid]
+    cmp ax, bx
+    jg swap3
+    jne continue
+
+; daca nu au aceeasi prioritate
+continue:
+    ; ne intoarcem la inceputul celui de al doilea loop si decrementam
+    loop for_second
+
+    ; punem inapoi in ecx indicele la care am ramas pentru primul loop
     pop ecx
-    loop for_first ;ne intoarcem la inceputul primului loop si decrementam ecx
-    jmp pentru_afisare ; sa nu faca iar swap
 
+    ; ne intoarcem la inceputul primului loop si decrementam ecx
+    loop for_first
+    ; s-a terminat al doilea loop
+    jmp end
+
+; avem in dreapta un element cu prioritatea mai mica
 swap1:
     ; interschimbam in vector toate componentele
     mov byte[edi + proc.prio], bl
@@ -101,35 +110,12 @@ swap3:
     mov bx, word[esi + proc.pid]
     mov word[edi + proc.pid], bx
     mov word[esi + proc.pid], ax
+
     ; ne intorcem in loop2
     jmp continue
 
-
-; doar pentru afisare
-pentru_afisare
-    mov ecx, 13
-
-afisare:
-    ;PRINTF32 `primul:%d\n\x0\n`, ecx ; afisam nr procesului de la sfarsit
-
-    xor esi, esi ;il pastram pentru primul proces incepand cu finalul
-    mov esi, ecx ; adresa de o inmultim cu 5
-    imul esi, 5 ; adresa inmultita cu 5
-    sub esi, 5 ; scadem o adresa
-
-    xor eax, eax
-    ; esi e intermediar iar eax retine valoarea
-    mov ax, word[edx + esi + proc.time] ; punem in al prioritatea
-    ;PRINTF32 `pid:%u\n\x0\n`, eax
-
-    loop afisare ;ne intoarcem la inceputul primului loop si decrementam ecx
-
-
 end:
 
-;PRINTF32 `prio:%u\n\x0\n`, ebx
-    ;mov bx, word[edx + eax + proc.time] ; punem in bx timeul
-    ;PRINTF32 `time:%u\n\x0\n`, ebx
     ;; Your code ends here
 
     ;; DO NOT MODIFY
