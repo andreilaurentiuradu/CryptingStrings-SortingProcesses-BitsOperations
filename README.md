@@ -19,4 +19,5 @@ Impartim problema in 5 cazuri mari cu alte 4 particulare pentru colturi. Primele
 
 Bonus: Optimizare task-4, matricea este retinuta prin bitii a doua numere intregi.
 
-Punem intr-un registru valoarea 00000101 ce reprezinta 2 pozitii de pe diagonala pozitiei damei. Shiftam cu nr_coloanei - 1 pozitii pentru a afla 
+Punem intr-un registru valoarea 00000101 ce reprezinta 2 pozitii de pe diagonala pozitiei damei. Shiftam cu nr_coloanei - 1 pozitii pentru a afla forma liniilor pe care se poate deplasa dama(in cazul coloanei 7 se trunchiaza), exceptie fiind cazul in care coloana este 0(shiftam la dreapta o pozitie)
+Analizam separat cazurile in care dama se afla pe marginea unuia dintre numerele board[0] si board[1]
