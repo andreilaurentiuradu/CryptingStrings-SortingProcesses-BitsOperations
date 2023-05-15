@@ -60,7 +60,8 @@ down:
 center_loop_down:
     cmp eax, 1
     je put_bytes_down
-    add esi, 1
+    add edi, 1
+    ;PRINTF32 `doi:%d\n\x0\n`, edi
     dec eax
     jmp center_loop_down
 
@@ -69,6 +70,14 @@ put_bytes_down:
     mov byte[edi + 2], dl
     jmp end
 
+down_middle_border:
+    mov byte[edi + 2], dl
+    mov byte[esi], dl
+    jmp end
+
+down_border:
+    mov byte[edi + 1], dl
+    jmp end
 
 up:
     cmp eax, 7
@@ -95,18 +104,10 @@ up_border: ; marginea de sus a primului nr
     jmp end
 
 up_middle_border: ; marginea de jos a primului nr
+    ;PRINTF32 `unu:%d\n\x0\n`, esi
     mov byte[esi + 1], dl
-    PRINTF32 `aici?:%d\n\x0\n`, eax
     mov byte[edi + 3], dl
-    jmp end
 
-down_middle_border:
-    mov byte[edi + 2], dl
-    mov byte[esi], dl
-    jmp end
-
-down_border:
-    mov byte[edi + 1], dl
     jmp end
 
     ; add byte[edi], 128 ; sa adaugam 1 la valoarea din byteul lui esi
