@@ -1,5 +1,5 @@
 %include "../include/io.mac"
-
+%assign alfabet 26
 section .text
     global simple
     extern printf
@@ -18,23 +18,32 @@ simple:
     ;; DO NOT MODIFY
     ;; Your code starts here
 
-    ; initializari
+    ; punem terminatorul de sir
     mov byte[edi + ecx], 0
-move:
-    xor eax, eax ; initializam eax cu 0
-    mov al, byte[esi + ecx - 1] ; sau mov eax, [esi + ecx - 1] ; punem cate un caracter
-    add al, dl ; adaugam steps (nr pana in 26 deci e in dl tot)
-    cmp al, 'Z' ;verificam daca facem overflow
-    jle not_overflow ; daca nu facem
-    sub al, 26 ; daca facem scadem 26
-    mov byte [edi + ecx - 1], al ; punem in sirul edi(cel criptat)
+for_loop:
+    ; initializam eax cu 0
+    xor eax, eax
+    ; punem cate un caracter
+    mov al, byte[esi + ecx - 1]
+    ; adaugam step (nr <= 26 deci e in dl tot)
+    add al, dl
+    ;verificam daca trecem de Z prin adunarea stepului
+    cmp al, 'Z'
+    ; daca nu trecem
+    jle not_over_bound
+    ; daca trecem scadem nr de litere din alfabet
+    sub al, alfabet
+    ; punem in sirul criptat
+    mov byte [edi + ecx - 1], al
 next:
-    loop move
+    loop for_loop
 
 jmp end ; cand s-a terminat loopul mergem la final
 
-not_overflow:
-    mov byte [edi + ecx - 1], al ; punem in sirul edi(cel criptat) caracterul criptat
+; daca nu facem overflow
+not_over_bound:
+    ; punem in sirul edi(cel criptat) caracterul criptat
+    mov byte [edi + ecx - 1], al 
     jmp next ; ne intoarcem in loop
 
 end:
